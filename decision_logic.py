@@ -13,32 +13,53 @@ STAFF_FILE = "staff.xlsx"
 ORDERS_FILE = "orders.xlsx"
 
 
+import os
+import pandas as pd
+
+INVENTORY_FILE = "inventory.xlsx"
+
 def load_inventory():
-    # Loads inventory data from Excel into a dictionary
+    # ✅ If file does not exist (cloud), create demo data
+    if not os.path.exists(INVENTORY_FILE):
+        df = pd.DataFrame([
+            {"item_name": "bricks", "quantity": 100, "min_required": 150},
+            {"item_name": "cement", "quantity": 300, "min_required": 200},
+            {"item_name": "steel", "quantity": 50, "min_required": 100},
+        ])
+        df.to_excel(INVENTORY_FILE, index=False)
+
     df = pd.read_excel(INVENTORY_FILE)
+
     inventory = {}
-
     for _, row in df.iterrows():
-        inventory[row["item_name"].strip().lower()] = {
+        inventory[row["item_name"].lower()] = {
             "quantity": int(row["quantity"]),
-            "min_required": int(row["min_required"])
+            "min_required": int(row["min_required"]),
         }
-
     return inventory
 
 
-def load_staff():
-    # Loads staff data and availability from Excel
-    df = pd.read_excel(STAFF_FILE)
-    staff = []
 
+STAFF_FILE = "staff.xlsx"
+
+def load_staff():
+    if not os.path.exists(STAFF_FILE):
+        df = pd.DataFrame([
+            {"staff_name": "Amit", "skill": "bricks", "available": "no"},
+            {"staff_name": "Neha", "skill": "cement", "available": "yes"},
+            {"staff_name": "Rahul", "skill": "steel", "available": "no"},
+        ])
+        df.to_excel(STAFF_FILE, index=False)
+
+    df = pd.read_excel(STAFF_FILE)
+
+    staff = []
     for _, row in df.iterrows():
         staff.append({
-            "name": row["staff_name"].strip(),
-            "skill": row["skill"].strip().lower(),
-            "available": str(row["available"]).strip().lower() == "yes"
+            "name": row["staff_name"],
+            "skill": row["skill"].lower(),
+            "available": row["available"].lower() == "yes"
         })
-
     return staff
 
 
@@ -148,5 +169,6 @@ def explain_decision(decision, order, staff=None):
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2
     )
+
 
     return response.choices[0].message.content.strip()
